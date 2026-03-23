@@ -298,7 +298,9 @@ private:
             }
 
             case ::fujitsu_ac::Address::ActualTemp: {
-                float t = reg->value / 10.0f;
+                // 原版公式：(value - 5025) / 100
+                // 例：室溫25°C → value=7525，(7525-5025)/100 = 25.0°C
+                float t = (static_cast<int>(reg->value) - 5025) / 100.0f;
                 this->current_temperature = t;
 #ifdef USE_SENSOR
                 if (indoor_temp_sensor_) indoor_temp_sensor_->publish_state(t);
@@ -310,7 +312,9 @@ private:
             case ::fujitsu_ac::Address::OutdoorTemp: {
 #ifdef USE_SENSOR
                 if (outdoor_temp_sensor_) {
-                    outdoor_temp_sensor_->publish_state(reg->value / 10.0f);
+                    // 原版公式：(value - 5025) / 100，支援負溫度
+                    float t = (static_cast<int>(reg->value) - 5025) / 100.0f;
+                    outdoor_temp_sensor_->publish_state(t);
                 }
 #endif
                 break;
